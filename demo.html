@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hello World Plugin Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .demo-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        input {
+            padding: 10px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            width: 200px;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background: #007cba;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #005a8b;
+        }
+        .result {
+            margin-top: 10px;
+            padding: 10px;
+            background: #e8f4f8;
+            border-radius: 4px;
+            border-left: 4px solid #007cba;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Hello World Capacitor Plugin Demo</h1>
+        
+        <div class="demo-section">
+            <h3>Echo Function</h3>
+            <input type="text" id="echoInput" placeholder="Enter text to echo" value="Hello Capacitor!">
+            <button onclick="testEcho()">Test Echo</button>
+            <div id="echoResult" class="result" style="display:none;"></div>
+        </div>
+
+        <div class="demo-section">
+            <h3>Greeting Function</h3>
+            <input type="text" id="nameInput" placeholder="Enter your name" value="Developer">
+            <button onclick="testGreeting()">Get Greeting</button>
+            <div id="greetingResult" class="result" style="display:none;"></div>
+        </div>
+    </div>
+
+    <script>
+        // This would normally be imported from your plugin
+        // For demo purposes, we'll simulate the plugin behavior
+        const HelloWorld = {
+            async echo(options) {
+                return { value: options.value };
+            },
+            async getGreeting(options) {
+                return { greeting: `Hello ${options.name} from the web!` };
+            }
+        };
+
+        async function testEcho() {
+            const input = document.getElementById('echoInput').value;
+            const resultDiv = document.getElementById('echoResult');
+            
+            try {
+                const result = await HelloWorld.echo({ value: input });
+                resultDiv.innerHTML = `<strong>Echo Result:</strong> ${result.value}`;
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+
+        async function testGreeting() {
+            const name = document.getElementById('nameInput').value;
+            const resultDiv = document.getElementById('greetingResult');
+            
+            try {
+                const result = await HelloWorld.getGreeting({ name: name });
+                resultDiv.innerHTML = `<strong>Greeting:</strong> ${result.greeting}`;
+                resultDiv.style.display = 'block';
+            } catch (error) {
+                resultDiv.innerHTML = `<strong>Error:</strong> ${error.message}`;
+                resultDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
