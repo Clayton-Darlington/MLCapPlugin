@@ -271,14 +271,31 @@ window.customElements.define(
 
       async function generateText(prompt) {
         console.log('Generating text for prompt:', prompt);
-        displayTextResult('🔄 Generating text...');
+        displayTextResult('🔄 Downloading model and generating text...');
         
         try {
-          const result = await MLPlugin.generateText({ prompt: prompt, modelConfig: {
-            downloadAtRuntime: true, // Use bundled model
-          } });
+          const result = await MLPlugin.generateText({ 
+            prompt: prompt, 
+            modelConfig: {
+              modelUrl: "https://huggingface.co/google/gemma-3n-E2B-it-litert-lm/resolve/main/model.litertlm",
+              downloadAtRuntime: true, // Download from URL at runtime
+              maxTokens: 512,
+              temperature: 0.7,
+            }
+          });
           displayTextResult('✅ Text generation completed:');
-          displayTextResult(JSON.stringify(result, null, 2));
+          
+          // Display the generated text more cleanly
+          if (result && result.generatedText) {
+            displayTextResult('Generated text:');
+            displayTextResult(result.generatedText);
+          } else if (result && result.text) {
+            displayTextResult('Generated text:');
+            displayTextResult(result.text);
+          } else {
+            displayTextResult('Full response:');
+            displayTextResult(JSON.stringify(result, null, 2));
+          }
         } catch (error) {
           displayTextResult('❌ Text generation failed: ' + error.message, true);
           console.error('Text generation error:', error);
