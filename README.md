@@ -1,94 +1,176 @@
-# Hello World Capacitor Plugin
+# ML Image Classification Plugin
 
-A simple Hello World Capacitor plugin demonstrating cross-platform native functionality with iOS and Android implementations.
+A Capacitor plugin for real-time image classification using MobileNetV2 and CoreML on iOS devices. This plugin enables mobile apps to classify images captured from the camera or selected from the photo gallery using on-device machine learning.
 
 ## Platform Support
 
-- **Android**: Native Java implementation
-- **iOS**: Native Swift implementation  
-- **Web**: TypeScript implementation for testing
+- **iOS**: Native Swift implementation with CoreML and Vision framework
+- **Android**: Stub implementation (future development)
+- **Web**: Mock implementation for testing
 
 ## Features
 
-- Simple echo functionality
-- Personalized greeting messages
-- Cross-platform compatibility
-- Type-safe TypeScript API
-- Native platform logging
+- 🔄 Echo functionality for testing plugin connectivity
+- 📸 Real-time image classification using MobileNetV2
+- 📷 Camera integration for live photo classification
+- 🖼️ Photo gallery selection and classification
+- 🧠 On-device ML processing (no data sent to external servers)
+- ⚡ Fast inference using CoreML optimization
+- 🎯 Confidence scores for classification results
 
-## Installation
+## Installation & Setup
 
-```bash
-npm install hello-world-capacitor-plugin
-npx cap sync
-```
+> **Note**: This plugin is currently in development and not available on npm. You need to clone the repository and link it locally.
+
+### Prerequisites
+
+- Node.js 16+
+- Capacitor CLI (`npm install -g @capacitor/cli`)
+- Xcode (for iOS development)
+- iOS device or simulator
+
+### Setup Instructions
+
+1. **Clone the ML Plugin repository:**
+   ```bash
+   git clone https://github.com/Clayton-Darlington/MLPlugin.git
+   cd MLPlugin
+   ```
+
+2. **Install dependencies and build the plugin:**
+   ```bash
+   npm install
+   npm run build
+   ```
+
+3. **Link the plugin locally:**
+   ```bash
+   npm link
+   ```
+
+4. **In your Capacitor project, link the plugin:**
+   ```bash
+   cd /path/to/your/capacitor/project
+   npm link ml-plugin
+   ```
+
+5. **Install required Capacitor plugins:**
+   ```bash
+   npm install @capacitor/camera @capacitor/splash-screen
+   ```
+
+6. **Sync with Capacitor:**
+   ```bash
+   npx cap sync
+   ```
+
+7. **Add the plugin to your app:**
+   ```typescript
+   import { MLPlugin } from 'ml-plugin';
+   import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
+   ```
 
 ## Usage
 
+### Basic Plugin Test
+
 ```typescript
-import { HelloWorld } from 'hello-world-capacitor-plugin';
-
-// Echo a message
-const echoResult = await HelloWorld.echo({ value: "Hello Capacitor!" });
-console.log(echoResult.value); // "Hello Capacitor!"
-
-// Get a personalized greeting
-const greeting = await HelloWorld.getGreeting({ name: "Developer" });
-console.log(greeting.greeting); // "Hello Developer from iOS!" or "Hello Developer from Android!"
+// Test plugin connectivity
+const result = await MLPlugin.echo({ value: 'Hello MLPlugin!' });
+console.log(result.value); // "Hello MLPlugin!"
 ```
 
-## API
+### Image Classification from Camera
+
+```typescript
+// Take photo and classify
+const photo = await Camera.getPhoto({
+  resultType: CameraResultType.Base64,
+  source: CameraSource.Camera,
+  quality: 90
+});
+
+const result = await MLPlugin.classifyImage({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+});
+
+console.log(result.predictions);
+// [
+//   { label: "golden retriever", confidence: 0.95 },
+//   { label: "dog", confidence: 0.87 },
+//   ...
+// ]
+```
+
+### Image Classification from Gallery
+
+```typescript
+// Select from gallery and classify
+const photo = await Camera.getPhoto({
+  resultType: CameraResultType.Base64,
+  source: CameraSource.Photos,
+  quality: 90
+});
+
+const result = await MLPlugin.classifyImage({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+});
+```
+
+## API Reference
 
 ### `echo(options: { value: string })`
 
-Echoes back the provided string value.
+Test plugin connectivity by echoing back a string value.
 
 **Parameters:**
 - `options.value` (string): The string to echo back
 
 **Returns:** `Promise<{ value: string }>`
 
-**Example:**
-```typescript
-const result = await HelloWorld.echo({ value: "Test message" });
-console.log(result.value); // "Test message"
-```
+### `classifyImage(options: ClassifyImageOptions)`
 
-### `getGreeting(options: { name: string })`
-
-Returns a personalized greeting message from the native platform.
+Classify an image using the MobileNetV2 model.
 
 **Parameters:**
-- `options.name` (string): The name to include in the greeting
+- `options.base64Image` (string): Base64 encoded image data with data URI prefix
 
-**Returns:** `Promise<{ greeting: string }>`
+**Returns:** `Promise<ClassifyImageResult>`
 
-**Example:**
+**Types:**
 ```typescript
-const result = await HelloWorld.getGreeting({ name: "John" });
-console.log(result.greeting); // "Hello John from iOS!" (on iOS) or "Hello John from Android!" (on Android)
+interface ClassifyImageOptions {
+  base64Image: string; // "data:image/jpeg;base64,/9j/4AAQ..."
+}
+
+interface ClassifyImageResult {
+  predictions: ClassificationResult[];
+}
+
+interface ClassificationResult {
+  label: string;      // Predicted class name
+  confidence: number; // Confidence score (0-1)
+}
 ```
 
-## Platform-Specific Behavior
+## Running the Demo App
 
-### Android
-- Uses native Android logging (Log.i)
-- Returns greetings with "from Android!" suffix
-- Implemented in Java
+The included demo app showcases all plugin functionality:
 
-### iOS  
-- Uses native iOS logging (print)
-- Returns greetings with "from iOS!" suffix
-- Implemented in Swift
+1. **Navigate to the demo app:**
+   ```bash
+   cd my-app
+   ```
 
-### Web
-- Uses browser console logging
-- Returns greetings with "from the web!" suffix
-- Implemented in TypeScript
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-## Demo
-
-Open `demo.html` in a web browser to test the plugin functionality in a web environment.
+3. **Run on iOS:**
+   ```bash
+   npx cap run ios
+   ```
 
 ## Development
 
@@ -99,35 +181,53 @@ npm install
 npm run build
 ```
 
-### Testing
+### Project Structure
 
-```bash
-# Verify all platforms
-npm run verify
-
-# Test individual platforms
-npm run verify:ios
-npm run verify:android
-npm run verify:web
+```
+MLPlugin/
+├── src/                    # TypeScript source
+├── ios/                    # iOS native implementation
+├── android/               # Android stub implementation
+├── dist/                  # Built plugin files
+└── my-app/               # Demo Capacitor app
 ```
 
-## Development
+### iOS Implementation Details
 
-### Prerequisites
+- Uses **CoreML** for efficient on-device inference
+- Integrates **Vision framework** for image preprocessing
+- Includes **MobileNetV2.mlmodel** for classification
+- Optimized for iOS 13+ devices
 
-- Node.js 16+
-- Capacitor CLI
-- Android Studio (for Android development)
-- Xcode (for iOS development)
+## Troubleshooting
 
-### Building
+### Common Issues
 
-```bash
-npm run build
-```
+1. **Plugin not found**: Ensure you've run `npm link` in both the plugin and your app directories
+2. **iOS build errors**: Make sure Xcode is updated and you've run `npx cap sync`
+3. **Permission errors**: The plugin handles camera permissions automatically
+4. **Classification errors**: Ensure images are in supported formats (JPEG/PNG)
 
-### Testing
+### Debug Mode
 
-```bash
-npm run test
-```
+Enable detailed logging by checking the console output in Xcode when running on iOS devices.
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly on iOS devices
+5. Submit a pull request
+
+## Roadmap
+
+- [ ] Android implementation with TensorFlow Lite
+- [ ] Additional ML models (object detection, face recognition)
+- [ ] Custom model loading
+- [ ] Batch image processing
+- [ ] Performance optimizations

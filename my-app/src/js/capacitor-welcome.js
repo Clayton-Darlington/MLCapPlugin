@@ -15,125 +15,222 @@ window.customElements.define(
       root.innerHTML = `
     <style>
       :host {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         display: block;
         width: 100%;
         height: 100%;
+        background: #f8f9fa;
       }
-      h1, h2, h3, h4, h5 {
-        text-transform: uppercase;
+      
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
       }
-      .button {
-        display: inline-block;
-        padding: 10px;
-        background-color: #73B5F6;
-        color: #fff;
-        font-size: 0.9em;
-        border: 0;
-        border-radius: 3px;
-        text-decoration: none;
-        cursor: pointer;
+      
+      .header {
+        text-align: center;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 30px 20px;
+        border-radius: 12px;
+        margin-bottom: 30px;
       }
-      main {
-        padding: 15px;
+      
+      .header h1 {
+        margin: 0;
+        font-size: 2em;
+        font-weight: 600;
       }
-      main hr { height: 1px; background-color: #eee; border: 0; }
-      main h1 {
-        font-size: 1.4em;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      main h2 {
+      
+      .header p {
+        margin: 10px 0 0 0;
+        opacity: 0.9;
         font-size: 1.1em;
       }
-      main h3 {
-        font-size: 0.9em;
+      
+      .section {
+        background: white;
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       }
-      main p {
+      
+      .section h2 {
+        margin: 0 0 20px 0;
         color: #333;
+        font-size: 1.3em;
       }
-      main pre {
-        white-space: pre-line;
+      
+      .button-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+      }
+      
+      .button {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 500;
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      
+      .button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+      }
+      
+      .button:active {
+        transform: translateY(0);
+      }
+      
+      .results {
+        background: #f8f9fa;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 20px;
+        margin-top: 20px;
+        display: none;
+      }
+      
+      .results h3 {
+        margin: 0 0 15px 0;
+        color: #495057;
+        font-size: 1.1em;
+      }
+      
+      .results pre {
+        margin: 0;
+        white-space: pre-wrap;
+        font-family: 'Monaco', 'Menlo', monospace;
+        font-size: 13px;
+        line-height: 1.5;
+        color: #495057;
+      }
+      
+      .image-preview {
+        max-width: 100%;
+        border-radius: 8px;
+        margin-top: 15px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       }
     </style>
-    <div>
-      <capacitor-welcome-titlebar>
-        <h1>Capacitor</h1>
-      </capacitor-welcome-titlebar>
-      <main>
-        <p>
-          Capacitor makes it easy to build powerful apps for the app stores, mobile web (Progressive Web Apps), and desktop, all
-          with a single code base.
-        </p>
-        <h2>Getting Started</h2>
-        <p>
-          You'll probably need a UI framework to build a full-featured app. Might we recommend
-          <a target="_blank" href="http://ionicframework.com/">Ionic</a>?
-        </p>
-        <p>
-          Visit <a href="https://capacitorjs.com">capacitorjs.com</a> for information
-          on using native features, building plugins, and more.
-        </p>
-        <a href="https://capacitorjs.com" target="_blank" class="button">Read more</a>
-        <h2>ML Plugin Demo</h2>
-        <p>
-          Test the ML Plugin functionality:
-        </p>
-        <p>
-          <button class="button" id="test-echo">Test Echo</button>
-          <button class="button" id="test-classification">Take Photo & Classify</button>
-          <button class="button" id="test-gallery-classification">Choose from Gallery & Classify</button>
-        </p>
-        <div id="ml-results" style="margin-top: 20px; padding: 10px; background-color: #f5f5f5; border-radius: 5px; display: none;">
-          <h3>ML Plugin Results:</h3>
-          <pre id="results-text" style="white-space: pre-wrap; font-family: monospace; color: #333;"></pre>
+    <div class="container">
+      <div class="header">
+        <h1>ML Image Classifier</h1>
+        <p>Powered by MobileNetV2 and CoreML</p>
+      </div>
+      
+      <div class="section">
+        <h2>Image Classification</h2>
+        <p>Test the ML Plugin with images from camera or gallery:</p>
+        <div class="button-group">
+          <button class="button" id="test-echo">Test Connection</button>
+          <button class="button" id="take-photo-classify">Take Photo & Classify</button>
+          <button class="button" id="gallery-classify">Choose from Gallery & Classify</button>
         </div>
-        <h2>Camera Demo</h2>
-        <p>
-          This demo shows how to call Capacitor plugins. Say cheese!
-        </p>
-        <p>
-          <button class="button" id="take-photo">Take Photo</button>
-        </p>
-        <p>
-          <img id="image" style="max-width: 100%">
-        </p>
-      </main>
+        <div id="results" class="results">
+          <h3>Results:</h3>
+          <pre id="results-text"></pre>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>Camera Preview</h2>
+        <p>Take a photo to see it here:</p>
+        <button class="button" id="take-photo">Take Photo</button>
+        <img id="image-preview" class="image-preview" style="display: none;">
+      </div>
     </div>
     `;
     }
 
     connectedCallback() {
       const self = this;
+      
+      // Get DOM elements
+      const resultsDiv = () => self.shadowRoot.querySelector('#results');
+      const resultsText = () => self.shadowRoot.querySelector('#results-text');
+      const imagePreview = () => self.shadowRoot.querySelector('#image-preview');
 
-      // Helper function to display results in UI
-      function displayResult(message, isError = false) {
-        const resultsDiv = self.shadowRoot.querySelector('#ml-results');
-        const resultsText = self.shadowRoot.querySelector('#results-text');
-        
-        if (resultsDiv && resultsText) {
-          resultsDiv.style.display = 'block';
-          resultsText.style.color = isError ? '#d32f2f' : '#333';
-          resultsText.textContent += (resultsText.textContent ? '\n\n' : '') + message;
+      // Helper functions
+      function clearResults() {
+        const results = resultsText();
+        if (results) {
+          results.textContent = '';
         }
       }
 
-      // Test Echo button
-      self.shadowRoot.querySelector('#test-echo').addEventListener('click', async function (e) {
+      function showResults() {
+        const div = resultsDiv();
+        if (div) {
+          div.style.display = 'block';
+        }
+      }
+
+      function displayResult(message, isError = false) {
+        const results = resultsText();
+        showResults();
+        
+        if (results) {
+          results.style.color = isError ? '#dc3545' : '#495057';
+          results.textContent += (results.textContent ? '\n\n' : '') + message;
+        }
+      }
+
+      function extractBase64Data(photo) {
+        if (photo.base64String) {
+          return `data:image/jpeg;base64,${photo.base64String}`;
+        } else if (photo.dataUrl) {
+          return photo.dataUrl;
+        }
+        return null;
+      }
+
+      async function classifyImage(photo, source = 'camera') {
+        console.log(`${source} photo object:`, photo);
+        displayResult(`Photo properties: ${Object.keys(photo).join(', ')}`);
+        
+        const base64Data = extractBase64Data(photo);
+        if (!base64Data) {
+          displayResult('Error: No base64 data found in photo object', true);
+          return;
+        }
+
+        displayResult('✓ Photo data extracted successfully');
+        displayResult('🔄 Sending to ML model for classification...');
+        
+        const result = await MLPlugin.classifyImage({ base64Image: base64Data });
+        displayResult('🎯 Classification Results:');
+        displayResult(JSON.stringify(result, null, 2));
+      }
+
+      // Event Listeners
+      self.shadowRoot.querySelector('#test-echo').addEventListener('click', async () => {
         try {
-          displayResult('Testing Echo function...');
+          clearResults();
+          displayResult('🔌 Testing plugin connection...');
+          
           const result = await MLPlugin.echo({ value: 'Hello MLPlugin!' });
-          displayResult('Echo result: ' + JSON.stringify(result, null, 2));
+          displayResult('✅ Connection successful!');
+          displayResult('Echo response: ' + JSON.stringify(result, null, 2));
         } catch (error) {
-          displayResult('Echo error: ' + error.message, true);
+          displayResult('❌ Connection failed: ' + error.message, true);
         }
       });
 
-      // Test Image Classification button
-      self.shadowRoot.querySelector('#test-classification').addEventListener('click', async function (e) {
+      self.shadowRoot.querySelector('#take-photo-classify').addEventListener('click', async () => {
         try {
-          displayResult('Testing Image Classification...');
-          // First try to take a photo, then classify it
+          clearResults();
+          displayResult('📷 Opening camera...');
+          
           const photo = await Camera.getPhoto({
             resultType: CameraResultType.Base64,
             quality: 90,
@@ -141,47 +238,20 @@ window.customElements.define(
             source: CameraSource.Camera
           });
           
-          // Debug: Log all photo properties
-          console.log('Photo object:', photo);
-          displayResult(`Photo taken successfully. Available properties: ${Object.keys(photo).join(', ')}`);
-          displayResult(`Base64 length: ${photo.base64String ? photo.base64String.length : 'undefined'}`);
-          displayResult(`DataUrl length: ${photo.dataUrl ? photo.dataUrl.length : 'undefined'}`);
-          
-          let base64Data = null;
-          
-          // Try to get base64 data from different properties
-          if (photo.base64String) {
-            base64Data = `data:image/jpeg;base64,${photo.base64String}`;
-            displayResult('Using base64String property');
-          } else if (photo.dataUrl) {
-            base64Data = photo.dataUrl;
-            displayResult('Using dataUrl property');
-          } else {
-            displayResult('Error: No base64 data found in photo object', true);
-            displayResult(`Photo object keys: ${Object.keys(photo).join(', ')}`, true);
-            return;
-          }
-          
-          displayResult('Sending image to MLPlugin for classification...');
-          displayResult(
-            `Base64 Data (truncated): ${base64Data.substring(0, 100)}...`
-          );
-          const result = await MLPlugin.classifyImage({ 
-            base64Image: base64Data
-          });
-          displayResult('Classification result: ' + JSON.stringify(result, null, 2));
+          displayResult('✅ Photo captured successfully');
+          await classifyImage(photo, 'camera');
           
         } catch (error) {
-          displayResult('Classification error: ' + error.message, true);
-          console.error('Full error details:', error);
+          displayResult('❌ Camera error: ' + error.message, true);
+          console.error('Camera error:', error);
         }
       });
 
-      // Test Gallery Classification button
-      self.shadowRoot.querySelector('#test-gallery-classification').addEventListener('click', async function (e) {
+      self.shadowRoot.querySelector('#gallery-classify').addEventListener('click', async () => {
         try {
-          displayResult('Testing Gallery Image Classification...');
-          // Select a photo from the gallery
+          clearResults();
+          displayResult('🖼️ Opening photo gallery...');
+          
           const photo = await Camera.getPhoto({
             resultType: CameraResultType.Base64,
             quality: 90,
@@ -189,88 +259,33 @@ window.customElements.define(
             source: CameraSource.Photos
           });
           
-          // Debug: Log all photo properties
-          console.log('Gallery photo object:', photo);
-          displayResult(`Photo selected successfully. Available properties: ${Object.keys(photo).join(', ')}`);
-          displayResult(`Base64 length: ${photo.base64String ? photo.base64String.length : 'undefined'}`);
-          displayResult(`DataUrl length: ${photo.dataUrl ? photo.dataUrl.length : 'undefined'}`);
-          
-          let base64Data = null;
-          
-          // Try to get base64 data from different properties
-          if (photo.base64String) {
-            base64Data = `data:image/jpeg;base64,${photo.base64String}`;
-            displayResult('Using base64String property');
-          } else if (photo.dataUrl) {
-            base64Data = photo.dataUrl;
-            displayResult('Using dataUrl property');
-          } else {
-            displayResult('Error: No base64 data found in photo object', true);
-            displayResult(`Photo object keys: ${Object.keys(photo).join(', ')}`, true);
-            return;
-          }
-          
-          displayResult('Sending gallery image to MLPlugin for classification...');
-          displayResult(
-            `Base64 Data (truncated): ${base64Data.substring(0, 100)}...`
-          );
-          const result = await MLPlugin.classifyImage({ 
-            base64Image: base64Data
-          });
-          displayResult('Gallery Classification result: ' + JSON.stringify(result, null, 2));
+          displayResult('✅ Photo selected successfully');
+          await classifyImage(photo, 'gallery');
           
         } catch (error) {
-          displayResult('Gallery Classification error: ' + error.message, true);
-          console.error('Full gallery error details:', error);
+          displayResult('❌ Gallery error: ' + error.message, true);
+          console.error('Gallery error:', error);
         }
       });
 
-      // Take Photo button (existing functionality)
-      self.shadowRoot.querySelector('#take-photo').addEventListener('click', async function (e) {
+      self.shadowRoot.querySelector('#take-photo').addEventListener('click', async () => {
         try {
           const photo = await Camera.getPhoto({
-            resultType: 'uri',
+            resultType: CameraResultType.Uri,
+            quality: 90
           });
 
-          const image = self.shadowRoot.querySelector('#image');
-          if (!image) {
-            return;
+          const image = imagePreview();
+          if (image && photo.webPath) {
+            image.src = photo.webPath;
+            image.style.display = 'block';
           }
-
-          image.src = photo.webPath;
-        } catch (e) {
-          console.warn('User cancelled', e);
+        } catch (error) {
+          console.warn('Photo cancelled or failed:', error);
         }
       });
     }
   },
 );
 
-window.customElements.define(
-  'capacitor-welcome-titlebar',
-  class extends HTMLElement {
-    constructor() {
-      super();
-      const root = this.attachShadow({ mode: 'open' });
-      root.innerHTML = `
-    <style>
-      :host {
-        position: relative;
-        display: block;
-        padding: 15px 15px 15px 15px;
-        text-align: center;
-        background-color: #73B5F6;
-      }
-      ::slotted(h1) {
-        margin: 0;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-        font-size: 0.9em;
-        font-weight: 600;
-        color: #fff;
-      }
-    </style>
-    <slot></slot>
-    `;
-    }
-  },
-);
+
