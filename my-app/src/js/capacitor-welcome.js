@@ -121,11 +121,29 @@ window.customElements.define(
         margin-top: 15px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       }
+      
+      .text-input {
+        width: 100%;
+        min-height: 100px;
+        padding: 12px;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 14px;
+        resize: vertical;
+        margin-bottom: 15px;
+      }
+      
+      .text-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.2);
+      }
     </style>
     <div class="container">
       <div class="header">
-        <h1>ML Image Classifier</h1>
-        <p>Powered by MobileNetV2 and CoreML</p>
+        <h1>ML Plugin Demo</h1>
+        <p>Powered by Gemma-3n-E4B, CoreML, and Text Generation</p>
       </div>
       
       <div class="section">
@@ -139,6 +157,20 @@ window.customElements.define(
         <div id="results" class="results">
           <h3>Results:</h3>
           <pre id="results-text"></pre>
+        </div>
+      </div>
+      
+      <div class="section">
+        <h2>Text Generation</h2>
+        <p>Generate text using the ML Plugin:</p>
+        <textarea id="text-input" class="text-input" placeholder="Enter your prompt here..."></textarea>
+        <div class="button-group">
+          <button class="button" id="generate-text">Generate Text</button>
+          <button class="button" id="clear-text">Clear</button>
+        </div>
+        <div id="text-results" class="results">
+          <h3>Generated Text:</h3>
+          <pre id="text-results-text"></pre>
         </div>
       </div>
       
@@ -212,6 +244,47 @@ window.customElements.define(
         displayResult(JSON.stringify(result, null, 2));
       }
 
+      // Text generation helper functions
+      function clearTextResults() {
+        const results = self.shadowRoot.querySelector('#text-results-text');
+        if (results) {
+          results.textContent = '';
+        }
+      }
+
+      function showTextResults() {
+        const div = self.shadowRoot.querySelector('#text-results');
+        if (div) {
+          div.style.display = 'block';
+        }
+      }
+
+      function displayTextResult(message, isError = false) {
+        const results = self.shadowRoot.querySelector('#text-results-text');
+        showTextResults();
+        
+        if (results) {
+          results.style.color = isError ? '#dc3545' : '#495057';
+          results.textContent += (results.textContent ? '\n\n' : '') + message;
+        }
+      }
+
+      async function generateText(prompt) {
+        console.log('Generating text for prompt:', prompt);
+        displayTextResult('🔄 Generating text...');
+        
+        try {
+          const result = await MLPlugin.generateText({ prompt: prompt, modelConfig: {
+            downloadAtRuntime: true, // Use bundled model
+          } });
+          displayTextResult('✅ Text generation completed:');
+          displayTextResult(JSON.stringify(result, null, 2));
+        } catch (error) {
+          displayTextResult('❌ Text generation failed: ' + error.message, true);
+          console.error('Text generation error:', error);
+        }
+      }
+
       // Event Listeners
       self.shadowRoot.querySelector('#test-echo').addEventListener('click', async () => {
         try {
@@ -266,6 +339,39 @@ window.customElements.define(
           displayResult('❌ Gallery error: ' + error.message, true);
           console.error('Gallery error:', error);
         }
+      });
+
+      // Text generation event listeners
+      self.shadowRoot.querySelector('#generate-text').addEventListener('click', async () => {
+        try {
+          const textInput = self.shadowRoot.querySelector('#text-input');
+          const prompt = textInput.value.trim();
+          
+          if (!prompt) {
+            displayTextResult('❌ Please enter a prompt', true);
+            return;
+          }
+          
+          clearTextResults();
+          await generateText(prompt);
+          
+        } catch (error) {
+          displayTextResult('❌ Text generation error: ' + error.message, true);
+          console.error('Text generation error:', error);
+        }
+      });
+
+      self.shadowRoot.querySelector('#clear-text').addEventListener('click', () => {
+        const textInput = self.shadowRoot.querySelector('#text-input');
+        const textResults = self.shadowRoot.querySelector('#text-results');
+        
+        if (textInput) {
+          textInput.value = '';
+        }
+        if (textResults) {
+          textResults.style.display = 'none';
+        }
+        clearTextResults();
       });
 
       self.shadowRoot.querySelector('#take-photo').addEventListener('click', async () => {

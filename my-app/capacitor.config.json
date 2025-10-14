@@ -5,6 +5,9 @@
   "plugins": {
     "SplashScreen": {
       "launchAutoHide": false
+    },
+    "MLPlugin": {
+      "modelPath": "gemma-3n-E4B-it-int4-Web.litertlm"
     }
   }
 }
