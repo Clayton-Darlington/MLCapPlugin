@@ -11,9 +11,13 @@ install! 'cocoapods', :disable_input_output_paths => true
 def capacitor_pods
   pod 'Capacitor', :path => '../../node_modules/@capacitor/ios'
   pod 'CapacitorCordova', :path => '../../node_modules/@capacitor/ios'
+  pod 'CapacitorApp', :path => '../../node_modules/@capacitor/app'
   pod 'CapacitorCamera', :path => '../../node_modules/@capacitor/camera'
+  pod 'CapacitorHaptics', :path => '../../node_modules/@capacitor/haptics'
+  pod 'CapacitorKeyboard', :path => '../../node_modules/@capacitor/keyboard'
   pod 'CapacitorSplashScreen', :path => '../../node_modules/@capacitor/splash-screen'
-  pod 'MlPlugin', :path => '../../../../MLPlugin/MLPlugin/ml-plugin'
+  pod 'CapacitorStatusBar', :path => '../../node_modules/@capacitor/status-bar'
+  pod 'MlPlugin', :path => '../../node_modules/ml-plugin'
 end
 
 target 'App' do
@@ -24,17 +28,17 @@ end
 post_install do |installer|
   assertDeploymentTarget(installer)
   
-  # Fix for static linking issues with Google ML Kit
+  # Fix for MediaPipe static library conflicts
   installer.pods_project.targets.each do |target|
     target.build_configurations.each do |config|
       config.build_settings['BUILD_LIBRARY_FOR_DISTRIBUTION'] = 'YES'
       config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '14.0'
+      
+      # Handle MediaPipe framework conflicts
+      if target.name == 'MediaPipeTasksGenAI' || target.name == 'MediaPipeTasksGenAIC'
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] ||= []
+        config.build_settings['FRAMEWORK_SEARCH_PATHS'] << '$(inherited)'
+      end
     end
-  end
-  
-  # Fix for GoogleUtilitiesComponents static linking issue
-  installer.pods_project.build_configurations.each do |config|
-    config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= ['$(inherited)']
-    config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] << 'COCOAPODS=1'
   end
 end

@@ -1,0 +1,111 @@
+<ion-header [translucent]="true">
+  <ion-toolbar color="primary">
+    <ion-title>
+      Native ML Demo
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">Native ML Demo</ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="container">
+    <!-- Header Card -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Native ML Demo</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Powered by Gemma-3n-E4B, CoreML, and Text Generation</p>
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Image Classification Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Image Classification</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Test the ML Plugin with images from camera or gallery:</p>
+        
+        <div class="button-group">
+          <ion-button expand="block" (click)="testEcho()">
+            Test Connection
+          </ion-button>
+          <ion-button expand="block" (click)="takePhotoAndClassify()">
+            Take Photo & Classify
+          </ion-button>
+          <ion-button expand="block" (click)="selectFromGalleryAndClassify()">
+            Choose from Gallery & Classify
+          </ion-button>
+        </div>
+
+        @if (showClassificationResults) {
+          <div class="results">
+            <h3>Results:</h3>
+            <pre>{{ classificationResults }}</pre>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Text Generation Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Text Generation</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Generate text using the ML Plugin:</p>
+        
+        <ion-item>
+          <ion-textarea 
+            [(ngModel)]="textPrompt" 
+            placeholder="Enter your prompt here..." 
+            rows="4">
+          </ion-textarea>
+        </ion-item>
+
+        <div class="button-group">
+          <ion-button expand="block" (click)="generateText()">
+            Generate Text
+          </ion-button>
+          <ion-button expand="block" fill="outline" (click)="clearText()">
+            Clear
+          </ion-button>
+        </div>
+
+        @if (showTextResults) {
+          <div class="results">
+            <h3>Generated Text:</h3>
+            <pre>{{ textResults }}</pre>
+          </div>
+        }
+      </ion-card-content>
+    </ion-card>
+
+    <!-- Camera Preview Section -->
+    <ion-card>
+      <ion-card-header>
+        <ion-card-title>Camera Preview</ion-card-title>
+      </ion-card-header>
+      <ion-card-content>
+        <p>Take a photo to see it here:</p>
+        
+        <ion-button expand="block" (click)="takePhoto()">
+          Take Photo
+        </ion-button>
+
+        @if (showImagePreview) {
+          <ion-img 
+            [src]="imagePreview" 
+            class="image-preview">
+          </ion-img>
+        }
+      </ion-card-content>
+    </ion-card>
+  </div>
+</ion-content>

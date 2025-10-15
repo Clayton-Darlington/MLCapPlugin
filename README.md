@@ -2,6 +2,8 @@
 
 A Capacitor plugin for real-time image classification using MobileNetV2 and CoreML on iOS devices. This plugin enables mobile apps to classify images captured from the camera or selected from the photo gallery using on-device machine learning.
 
+**Demo App**: Includes a modern Ionic Angular application showcasing all plugin functionality.
+
 ## Platform Support
 
 - **iOS**: Native Swift implementation with CoreML and Vision framework
@@ -155,7 +157,7 @@ interface ClassificationResult {
 
 ## Running the Demo App
 
-The included demo app showcases all plugin functionality:
+The included Ionic demo app showcases all plugin functionality:
 
 1. **Navigate to the demo app:**
    ```bash
@@ -167,7 +169,17 @@ The included demo app showcases all plugin functionality:
    npm install
    ```
 
-3. **Run on iOS:**
+3. **Build the app:**
+   ```bash
+   npm run build
+   ```
+
+4. **Sync with Capacitor:**
+   ```bash
+   npx cap sync
+   ```
+
+5. **Run on iOS:**
    ```bash
    npx cap run ios
    ```
@@ -189,7 +201,10 @@ MLPlugin/
 ├── ios/                    # iOS native implementation
 ├── android/               # Android stub implementation
 ├── dist/                  # Built plugin files
-└── my-app/               # Demo Capacitor app
+└── my-app/               # Demo Ionic/Angular app
+    ├── src/              # Angular source code
+    ├── ios/              # iOS platform files
+    └── www/              # Built web assets
 ```
 
 ### iOS Implementation Details

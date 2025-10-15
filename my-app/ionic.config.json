@@ -1,0 +1,7 @@
+{
+  "name": "native-ml-demo",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
