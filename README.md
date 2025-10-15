@@ -4,6 +4,19 @@ A Capacitor plugin for real-time image classification using MobileNetV2 and Core
 
 **Demo App**: Includes a modern Ionic Angular application showcasing all plugin functionality.
 
+## Quick Start
+
+Want to see it in action? Run the demo app:
+
+```bash
+git clone https://github.com/Clayton-Darlington/MLCapPlugin.git
+cd MLCapPlugin/my-app
+npm install
+ng build
+npx cap sync ios
+npx cap run ios
+```
+
 ## Platform Support
 
 - **iOS**: Native Swift implementation with CoreML and Vision framework
@@ -26,10 +39,13 @@ A Capacitor plugin for real-time image classification using MobileNetV2 and Core
 
 ### Prerequisites
 
-- Node.js 16+
+- Node.js 18+ (recommended)
+- npm or yarn package manager
+- Ionic CLI (`npm install -g @ionic/cli`)
 - Capacitor CLI (`npm install -g @capacitor/cli`)
-- Xcode (for iOS development)
-- iOS device or simulator
+- Angular CLI (`npm install -g @angular/cli`)
+- Xcode 15+ (for iOS development)
+- iOS device or simulator (iOS 14+)
 
 ### Setup Instructions
 
@@ -157,38 +173,109 @@ interface ClassificationResult {
 
 ## Running the Demo App
 
-The included Ionic demo app showcases all plugin functionality:
+The included Ionic Angular demo app showcases all plugin functionality including image classification, text generation, and camera integration.
 
-1. **Navigate to the demo app:**
+### Quick Start
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/Clayton-Darlington/MLCapPlugin.git
+   cd MLCapPlugin
+   ```
+
+2. **Navigate to the demo app:**
    ```bash
    cd my-app
    ```
 
-2. **Install dependencies:**
+3. **Install dependencies:**
    ```bash
    npm install
    ```
 
-3. **Build the app:**
+4. **Build the Angular app:**
    ```bash
-   npm run build
+   ng build
+   # or alternatively: npm run build
    ```
 
-4. **Sync with Capacitor:**
+5. **Sync with Capacitor (adds native platforms and plugins):**
    ```bash
-   npx cap sync
+   npx cap sync ios
    ```
 
-5. **Run on iOS:**
+6. **Open in Xcode and run:**
+   ```bash
+   npx cap open ios
+   ```
+   Then build and run from Xcode, or use:
    ```bash
    npx cap run ios
    ```
 
+### Development Workflow
+
+For active development with live reload:
+
+1. **Start the development server:**
+   ```bash
+   ng serve
+   # or: npm start
+   ```
+
+2. **In a separate terminal, run on device with live reload:**
+   ```bash
+   npx cap run ios --livereload --external
+   ```
+
+### Configuration
+
+The app is configured in `capacitor.config.ts`:
+
+```typescript
+const config: CapacitorConfig = {
+  appId: 'com.example.nativeMLDemo',
+  appName: 'Native ML Demo',
+  webDir: 'www',
+  plugins: {
+    SplashScreen: {
+      launchAutoHide: false
+    },
+    MLPlugin: {
+      modelPath: "gemma-3n-E4B-it-int4-Web.litertlm",
+      huggingFaceToken: process.env['HUGGING_FACE_TOKEN'] || 'YOUR_HF_TOKEN_HERE',
+      modelUrl: "https://huggingface.co/google/gemma-3n-E2B-it-litert-lm/resolve/main/model.litertlm"
+    }
+  }
+};
+```
+
+### Available Scripts
+
+- `npm start` - Start development server
+- `npm run build` - Build for production
+- `npm run test` - Run unit tests
+- `npm run lint` - Run ESLint
+- `npx cap sync` - Sync web assets and plugins
+- `npx cap run ios` - Build and run on iOS
+
 ## Development
 
-### Building the Plugin
+### Demo App Architecture
+
+The demo app is built with:
+- **Ionic 8** with Angular 20 LTS
+- **Capacitor 7** for native functionality
+- **TypeScript** for type safety
+- **Standalone Components** (Angular 20+ feature)
+- **Modern Angular patterns** (inject(), control flow syntax)
+
+### Building from Source
+
+If you want to modify the plugin itself:
 
 ```bash
+# In the root directory (if plugin source exists)
 npm install
 npm run build
 ```
@@ -218,14 +305,59 @@ MLPlugin/
 
 ### Common Issues
 
-1. **Plugin not found**: Ensure you've run `npm link` in both the plugin and your app directories
-2. **iOS build errors**: Make sure Xcode is updated and you've run `npx cap sync`
-3. **Permission errors**: The plugin handles camera permissions automatically
-4. **Classification errors**: Ensure images are in supported formats (JPEG/PNG)
+1. **Build Errors**:
+   ```bash
+   # Clear Angular cache
+   ng cache clean
+   
+   # Clean and reinstall dependencies
+   rm -rf node_modules package-lock.json
+   npm install
+   
+   # Rebuild and sync
+   ng build
+   npx cap sync ios
+   ```
+
+2. **iOS Build Failures**:
+   - Ensure Xcode 15+ is installed
+   - Update iOS deployment target to 14.0+
+   - Clean Xcode build folder (Product → Clean Build Folder)
+   - Verify Podfile.lock is up to date: `cd ios/App && pod install`
+
+3. **Plugin Not Found**:
+   ```bash
+   # Verify plugin is listed in package.json dependencies
+   # Ensure capacitor.config.ts includes MLPlugin configuration
+   npx cap sync ios
+   ```
+
+4. **Camera Permissions**:
+   - The plugin automatically requests camera permissions
+   - Check iOS Settings → Privacy & Security → Camera if issues persist
+
+5. **Model Loading Issues**:
+   - Ensure model files are in `ios/App/App/` directory
+   - Check file sizes (models are large files)
+   - Verify Hugging Face token is configured for text generation
+
+6. **Live Reload Issues**:
+   ```bash
+   # Use external live reload for device testing
+   npx cap run ios --livereload --external --host=0.0.0.0
+   ```
 
 ### Debug Mode
 
-Enable detailed logging by checking the console output in Xcode when running on iOS devices.
+- **Xcode Console**: View detailed logs in Xcode console
+- **Browser DevTools**: Use Safari Web Inspector for web debugging
+- **Ionic DevApp**: Use `ionic serve` for web testing before device deployment
+
+### Performance Tips
+
+- Models are loaded on first use (may take time initially)
+- Image classification is faster with lower resolution images
+- Text generation requires significant device resources
 
 ## License
 
