@@ -37,10 +37,7 @@
             ],
             "styles": ["src/global.scss", "src/theme/variables.scss"],
             "scripts": [],
-            "browser": "src/main.ts",
-            "externalDependencies": [
-              "@stencil/core"
-            ]
+            "browser": "src/main.ts"
           },
           "configurations": {
             "production": {

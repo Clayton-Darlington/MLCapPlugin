@@ -9,24 +9,42 @@ import {
   IonCardTitle, 
   IonCardContent, 
   IonButton, 
-  IonTextarea, 
   IonImg,
   IonItem,
+  IonList,
+  IonLabel,
   AlertController,
   LoadingController 
 } from '@ionic/angular/standalone';
-import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { SplashScreen } from '@capacitor/splash-screen';
 import { ConfigService } from '../services/config.service';
-// Import the plugin dynamically to avoid build issues
-declare var MLPlugin: any;
+import { MLPlugin } from 'ml-plugin';
+
+interface DetectionResult {
+  label: string;
+  confidence: number;
+  boundingBox?: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  };
+}
+
+// Extended plugin interface with detectObjects method
+interface ExtendedMLPlugin {
+  detectObjects(options: { base64Image: string }): Promise<{ detections: DetectionResult[] }>;
+  classifyImage(options: { base64Image: string }): Promise<{ predictions: DetectionResult[] }>;
+}
 
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
   styleUrls: ['home.page.scss'],
   imports: [
+    CommonModule,
     IonHeader, 
     IonToolbar, 
     IonTitle, 
@@ -36,19 +54,16 @@ declare var MLPlugin: any;
     IonCardTitle, 
     IonCardContent, 
     IonButton, 
-    IonTextarea, 
     IonImg,
     IonItem,
-    FormsModule
+    IonList,
+    IonLabel
   ],
 })
 export class HomePage implements OnInit {
-  textPrompt: string = '';
-  classificationResults: string = '';
-  textResults: string = '';
+  detectionResults: DetectionResult[] = [];
   imagePreview: string = '';
-  showClassificationResults: boolean = false;
-  showTextResults: boolean = false;
+  showDetectionResults: boolean = false;
   showImagePreview: boolean = false;
 
   private alertController = inject(AlertController);
@@ -71,11 +86,59 @@ export class HomePage implements OnInit {
       const result = await MLPlugin.echo({ value: 'Hello MLPlugin!' });
       await loading.dismiss();
       
-      this.classificationResults = `✅ Connection successful!\nEcho response: ${JSON.stringify(result, null, 2)}`;
-      this.showClassificationResults = true;
+      const alert = await this.alertController.create({
+        header: 'Success',
+        message: `✅ Connection successful!\nEcho response: ${JSON.stringify(result, null, 2)}`,
+        buttons: ['OK']
+      });
+      await alert.present();
     } catch (error: any) {
       await loading.dismiss();
       this.showError('Connection failed: ' + error.message);
+    }
+  }
+
+  async takePhotoAndDetect() {
+    const loading = await this.loadingController.create({
+      message: 'Opening camera...'
+    });
+    await loading.present();
+
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        quality: 90,
+        allowEditing: false,
+        source: CameraSource.Camera
+      });
+
+      await loading.dismiss();
+      await this.detectObjects(photo, 'camera');
+    } catch (error: any) {
+      await loading.dismiss();
+      this.showError('Camera error: ' + error.message);
+    }
+  }
+
+  async selectFromGalleryAndDetect() {
+    const loading = await this.loadingController.create({
+      message: 'Opening photo gallery...'
+    });
+    await loading.present();
+
+    try {
+      const photo = await Camera.getPhoto({
+        resultType: CameraResultType.Base64,
+        quality: 90,
+        allowEditing: false,
+        source: CameraSource.Photos
+      });
+
+      await loading.dismiss();
+      await this.detectObjects(photo, 'gallery');
+    } catch (error: any) {
+      await loading.dismiss();
+      this.showError('Gallery error: ' + error.message);
     }
   }
 
@@ -123,86 +186,16 @@ export class HomePage implements OnInit {
     }
   }
 
-  async takePhoto() {
-    try {
-      const photo = await Camera.getPhoto({
-        resultType: CameraResultType.Uri,
-        quality: 90
-      });
-
-      if (photo.webPath) {
-        this.imagePreview = photo.webPath;
-        this.showImagePreview = true;
-      }
-    } catch (error: any) {
-      console.warn('Photo cancelled or failed:', error);
-    }
+  clearResults() {
+    this.detectionResults = [];
+    this.imagePreview = '';
+    this.showDetectionResults = false;
+    this.showImagePreview = false;
   }
 
-  async generateText() {
-    if (!this.textPrompt.trim()) {
-      this.showError('Please enter a prompt');
-      return;
-    }
-
+  private async detectObjects(photo: any, source: string) {
     const loading = await this.loadingController.create({
-      message: 'Downloading model and generating text...'
-    });
-    await loading.present();
-
-    try {
-      // Get configuration from Capacitor config
-      const modelUrl = this.configService.getModelUrl();
-      const authHeaders = this.configService.getAuthHeaders();
-      const huggingFaceToken = this.configService.getHuggingFaceToken();
-      
-      // Check if token is configured
-      if (!huggingFaceToken || huggingFaceToken === 'YOUR_HF_TOKEN_HERE') {
-        await loading.dismiss();
-        this.showError('Hugging Face token not configured. Please set HUGGING_FACE_TOKEN in your environment or update capacitor.config.ts');
-        return;
-      }
-
-      const result = await MLPlugin.generateText({ 
-        prompt: this.textPrompt, 
-        modelConfig: {
-          modelUrl: modelUrl,
-          downloadAtRuntime: true,
-          maxTokens: 512,
-          temperature: 0.7,
-          authHeaders: authHeaders,
-          huggingFaceToken: huggingFaceToken
-        }
-      });
-
-      await loading.dismiss();
-      
-      let displayText = '✅ Text generation completed:\n\n';
-      if (result && result.generatedText) {
-        displayText += `Generated text:\n${result.generatedText}`;
-      } else if (result && result.text) {
-        displayText += `Generated text:\n${result.text}`;
-      } else {
-        displayText += `Full response:\n${JSON.stringify(result, null, 2)}`;
-      }
-
-      this.textResults = displayText;
-      this.showTextResults = true;
-    } catch (error: any) {
-      await loading.dismiss();
-      this.showError('Text generation failed: ' + error.message);
-    }
-  }
-
-  clearText() {
-    this.textPrompt = '';
-    this.textResults = '';
-    this.showTextResults = false;
-  }
-
-  private async classifyImage(photo: any, source: string) {
-    const loading = await this.loadingController.create({
-      message: 'Classifying image...'
+      message: 'Detecting objects with YOLOv8s...'
     });
     await loading.present();
 
@@ -214,19 +207,65 @@ export class HomePage implements OnInit {
         return;
       }
 
-      const result = await MLPlugin.classifyImage({ base64Image: base64Data });
+      // Set image preview
+      this.imagePreview = base64Data;
+      this.showImagePreview = true;
+
+      // Cast to extended plugin type to access detectObjects
+      const extendedPlugin = MLPlugin as unknown as ExtendedMLPlugin;
+      const result = await extendedPlugin.detectObjects({ 
+        base64Image: base64Data
+      });
+      
       await loading.dismiss();
       
-      let displayText = `✅ Photo captured successfully from ${source}\n`;
-      displayText += `✓ Photo data extracted successfully\n`;
-      displayText += `🎯 Classification Results:\n`;
-      displayText += JSON.stringify(result, null, 2);
-
-      this.classificationResults = displayText;
-      this.showClassificationResults = true;
+      // Parse object detection results
+      if (result && result.detections && result.detections.length > 0) {
+        this.detectionResults = result.detections;
+        this.showDetectionResults = true;
+      } else {
+        this.showError('No objects detected in the image');
+      }
     } catch (error: any) {
       await loading.dismiss();
-      this.showError('Classification failed: ' + error.message);
+      this.showError('Object detection failed: ' + error.message);
+    }
+  }
+
+  private async classifyImage(photo: any, source: string) {
+    const loading = await this.loadingController.create({
+      message: 'Classifying image with YOLOv8s...'
+    });
+    await loading.present();
+
+    try {
+      const base64Data = this.extractBase64Data(photo);
+      if (!base64Data) {
+        await loading.dismiss();
+        this.showError('No base64 data found in photo object');
+        return;
+      }
+
+      // Set image preview
+      this.imagePreview = base64Data;
+      this.showImagePreview = true;
+
+      const result = await MLPlugin.classifyImage({ 
+        base64Image: base64Data
+      } as any);
+      
+      await loading.dismiss();
+      
+      // Parse classification results
+      if (result && result.predictions && result.predictions.length > 0) {
+        this.detectionResults = result.predictions;
+        this.showDetectionResults = true;
+      } else {
+        this.showError('No objects classified in the image');
+      }
+    } catch (error: any) {
+      await loading.dismiss();
+      this.showError('Image classification failed: ' + error.message);
     }
   }
 

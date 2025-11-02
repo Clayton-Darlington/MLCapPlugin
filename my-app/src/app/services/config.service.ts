@@ -18,27 +18,11 @@ export class ConfigService {
     return this.config.plugins?.MLPlugin || {};
   }
 
-  getHuggingFaceToken(): string {
-    return this.getMLPluginConfig().huggingFaceToken || '';
+  getModelName(): string {
+    return this.getMLPluginConfig().modelName || 'yolov8s';
   }
 
-  getModelUrl(): string {
-    return this.getMLPluginConfig().modelUrl || '';
-  }
-
-  getModelPath(): string {
-    return this.getMLPluginConfig().modelPath || '';
-  }
-
-  // Create authenticated headers for Hugging Face API
-  getAuthHeaders(): Record<string, string> {
-    const token = this.getHuggingFaceToken();
-    if (token && token !== 'YOUR_HF_TOKEN_HERE') {
-      return {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json'
-      };
-    }
-    return {};
+  getModelType(): string {
+    return this.getMLPluginConfig().modelType || 'object-detection';
   }
 }

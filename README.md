@@ -1,6 +1,6 @@
-# ML Image Classification Plugin
+# ML Object Detection Plugin
 
-A Capacitor plugin for real-time image classification using MobileNetV2 and CoreML on iOS devices. This plugin enables mobile apps to classify images captured from the camera or selected from the photo gallery using on-device machine learning.
+A Capacitor plugin for real-time object detection using YOLOv8s and CoreML on iOS devices. This plugin enables mobile apps to detect objects in images captured from the camera or selected from the photo gallery using on-device machine learning.
 
 **Demo App**: Includes a modern Ionic Angular application showcasing all plugin functionality.
 
@@ -26,12 +26,15 @@ npx cap run ios
 ## Features
 
 - 🔄 Echo functionality for testing plugin connectivity
-- 📸 Real-time image classification using MobileNetV2
-- 📷 Camera integration for live photo classification
-- 🖼️ Photo gallery selection and classification
+- 🎯 **Object Detection** - Detect multiple objects with bounding boxes using YOLOv8s
+- 🏷️ **Image Classification** - Classify the primary object in an image
+- 📷 Camera integration for live photo capture
+- 🖼️ Photo gallery selection support
 - 🧠 On-device ML processing (no data sent to external servers)
 - ⚡ Fast inference using CoreML optimization
-- 🎯 Confidence scores for classification results
+- 📊 Confidence scores and bounding boxes for detected objects
+- 🎨 Dual mode: Object Detection vs Classification
+- � Support for 80+ object classes (COCO dataset)
 
 ## Installation & Setup
 
@@ -98,40 +101,50 @@ const result = await MLPlugin.echo({ value: 'Hello MLPlugin!' });
 console.log(result.value); // "Hello MLPlugin!"
 ```
 
-### Image Classification from Camera
+### Object Detection from Camera
 
 ```typescript
-// Take photo and classify
+// Take photo and detect objects
 const photo = await Camera.getPhoto({
   resultType: CameraResultType.Base64,
   source: CameraSource.Camera,
   quality: 90
 });
 
-const result = await MLPlugin.classifyImage({
-  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+const result = await MLPlugin.detectObjects({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`,
+  modelName: 'yolov8s'
 });
 
-console.log(result.predictions);
+console.log(result.detections);
 // [
-//   { label: "golden retriever", confidence: 0.95 },
-//   { label: "dog", confidence: 0.87 },
+//   { 
+//     label: "person", 
+//     confidence: 0.92,
+//     boundingBox: { x: 120, y: 50, width: 200, height: 400 }
+//   },
+//   { 
+//     label: "dog", 
+//     confidence: 0.87,
+//     boundingBox: { x: 50, y: 300, width: 150, height: 180 }
+//   },
 //   ...
 // ]
 ```
 
-### Image Classification from Gallery
+### Object Detection from Gallery
 
 ```typescript
-// Select from gallery and classify
+// Select from gallery and detect objects
 const photo = await Camera.getPhoto({
   resultType: CameraResultType.Base64,
   source: CameraSource.Photos,
   quality: 90
 });
 
-const result = await MLPlugin.classifyImage({
-  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+const result = await MLPlugin.detectObjects({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`,
+  modelName: 'yolov8s'
 });
 ```
 
@@ -146,34 +159,74 @@ Test plugin connectivity by echoing back a string value.
 
 **Returns:** `Promise<{ value: string }>`
 
+### `detectObjects(options: DetectObjectsOptions)`
+
+Detect multiple objects in an image using the YOLOv8s model. Returns all detected objects with bounding boxes.
+
+**Parameters:**
+- `options.base64Image` (string): Base64 encoded image data with data URI prefix
+
+**Returns:** `Promise<DetectObjectsResult>`
+
+**Example:**
+```typescript
+const result = await MLPlugin.detectObjects({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+});
+console.log(result.detections); // Array of detected objects with bounding boxes
+```
+
 ### `classifyImage(options: ClassifyImageOptions)`
 
-Classify an image using the MobileNetV2 model.
+Classify the primary object in an image using the YOLOv8s model. Returns top predictions sorted by confidence.
 
 **Parameters:**
 - `options.base64Image` (string): Base64 encoded image data with data URI prefix
 
 **Returns:** `Promise<ClassifyImageResult>`
 
+**Example:**
+```typescript
+const result = await MLPlugin.classifyImage({
+  base64Image: `data:image/jpeg;base64,${photo.base64String}`
+});
+console.log(result.predictions); // Array of classifications sorted by confidence
+```
+
 **Types:**
 ```typescript
+interface DetectObjectsOptions {
+  base64Image: string; // "data:image/jpeg;base64,/9j/4AAQ..."
+}
+
+interface DetectObjectsResult {
+  detections: DetectionResult[];
+}
+
 interface ClassifyImageOptions {
   base64Image: string; // "data:image/jpeg;base64,/9j/4AAQ..."
 }
 
 interface ClassifyImageResult {
-  predictions: ClassificationResult[];
+  predictions: DetectionResult[];
 }
 
-interface ClassificationResult {
-  label: string;      // Predicted class name
+interface DetectionResult {
+  label: string;      // Detected object class name
   confidence: number; // Confidence score (0-1)
+  boundingBox?: {     // Object location in image (detection only)
+    x: number;        // X coordinate (0-1, normalized)
+    y: number;        // Y coordinate (0-1, normalized)
+    width: number;    // Bounding box width (0-1, normalized)
+    height: number;   // Bounding box height (0-1, normalized)
+  };
+  modelName?: string; // "YOLOv8s"
 }
 ```
 
 ## Running the Demo App
 
-The included Ionic Angular demo app showcases all plugin functionality including image classification, text generation, and camera integration.
+The included Ionic Angular demo app showcases all plugin functionality including object detection with YOLOv8s and camera integration.
 
 ### Quick Start
 
@@ -242,9 +295,8 @@ const config: CapacitorConfig = {
       launchAutoHide: false
     },
     MLPlugin: {
-      modelPath: "gemma-3n-E4B-it-int4-Web.litertlm",
-      huggingFaceToken: process.env['HUGGING_FACE_TOKEN'] || 'YOUR_HF_TOKEN_HERE',
-      modelUrl: "https://huggingface.co/google/gemma-3n-E2B-it-litert-lm/resolve/main/model.litertlm"
+      modelName: "yolov8s",
+      modelType: "object-detection"
     }
   }
 };
@@ -298,8 +350,9 @@ MLPlugin/
 
 - Uses **CoreML** for efficient on-device inference
 - Integrates **Vision framework** for image preprocessing
-- Includes **MobileNetV2.mlmodel** for classification
+- Includes **YOLOv8s.mlpackage** for object detection
 - Optimized for iOS 13+ devices
+- Real-time object detection with bounding box predictions
 
 ## Troubleshooting
 
@@ -337,9 +390,9 @@ MLPlugin/
    - Check iOS Settings → Privacy & Security → Camera if issues persist
 
 5. **Model Loading Issues**:
-   - Ensure model files are in `ios/App/App/` directory
+   - Ensure `yolov8s.mlpackage` is in `ios/App/App/` directory
    - Check file sizes (models are large files)
-   - Verify Hugging Face token is configured for text generation
+   - Verify the model is included in Xcode project's Copy Bundle Resources
 
 6. **Live Reload Issues**:
    ```bash
@@ -356,8 +409,8 @@ MLPlugin/
 ### Performance Tips
 
 - Models are loaded on first use (may take time initially)
-- Image classification is faster with lower resolution images
-- Text generation requires significant device resources
+- Object detection is faster with lower resolution images (640x640 recommended for YOLOv8s)
+- YOLOv8s is optimized for real-time performance on mobile devices
 
 ## License
 
@@ -373,8 +426,11 @@ MIT License - see LICENSE file for details.
 
 ## Roadmap
 
+- [x] Object detection with YOLOv8s
 - [ ] Android implementation with TensorFlow Lite
-- [ ] Additional ML models (object detection, face recognition)
+- [ ] Additional ML models (YOLOv8m, YOLOv8l for higher accuracy)
 - [ ] Custom model loading
+- [ ] Video stream object detection
 - [ ] Batch image processing
 - [ ] Performance optimizations
+- [ ] Image segmentation support

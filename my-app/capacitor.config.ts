@@ -9,14 +9,9 @@ const config: CapacitorConfig = {
       launchAutoHide: false
     },
     MLPlugin: {
-      modelPath: "gemma-3n-E4B-it-int4-Web.litertlm",
-      huggingFaceToken: process.env['HUGGING_FACE_TOKEN'] || 'YOUR_HF_TOKEN_HERE',
-      modelUrl: "https://huggingface.co/google/gemma-3n-E2B-it-litert-lm/resolve/main/model.litertlm"
+      modelName: "yolov8s",
+      modelType: "object-detection"
     }
-  },
-  server: {
-    // Allow access to Hugging Face API
-    allowNavigation: ['https://huggingface.co/*']
   }
 };
 
